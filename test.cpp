@@ -47,7 +47,7 @@ namespace N3
   {
     enum class NestedEnum { A, B, END };
   };
-  ENUM_STRINGS(Foo::NestedEnum, "fa", "fb",);
+  ENUM_STRINGS(Foo::NestedEnum, "fa", "fb");
 }
 
 ///////////////////////////////
