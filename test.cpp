@@ -31,7 +31,7 @@ void test_get_strings(ARGS && ... args)
 
 namespace N1
 {
-  enum WeakEnum { A, B };
+  enum WeakEnum { A, B, END };
   ENUM_STRINGS(WeakEnum, "wa", "wb");
 }
 
@@ -45,7 +45,7 @@ namespace N3
 {
   struct Foo
   {
-    enum class NestedEnum { A, B };
+    enum class NestedEnum { A, B, END };
   };
   ENUM_STRINGS(Foo::NestedEnum, "fa", "fb");
 }
