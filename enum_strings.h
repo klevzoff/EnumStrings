@@ -21,29 +21,39 @@
  *  - the macro must be called at namespace scope the enumeration type is defined in
  *  - the number and order of string arguments passed must match the enum values
  *  - enumeration constants must not have custom values assigned
+ *
+ *  If the enumeration has a special constant named @p END, it should be
+ *  the last one, and its value will be used to determine the number
+ *  of enum values and checked at compile time against number of strings.
  */
-#define ENUM_STRINGS(E, ...)                                     \
-                                                                 \
-  inline auto const & _get_enum_strings(E)                       \
-  {                                                              \
-    static constexpr char const * ss[] { __VA_ARGS__ };          \
-    return ss;                                                   \
-  }                                                              \
-                                                                 \
-  inline std::ostream & operator<<(std::ostream & os, E const e) \
-  {                                                              \
-    os << ::enum_strings::to_string(e);                          \
-    return os;                                                   \
-  }                                                              \
-                                                                 \
-  inline std::istream & operator>>(std::istream & is, E & e)     \
-  {                                                              \
-    std::string s; is >> s;                                      \
-    e = ::enum_strings::from_string<E>(s);                       \
-    return is;                                                   \
-  }                                                              \
-                                                                 \
-  static_assert(std::is_enum<E>::value, "Not an enumeration type")
+#define ENUM_STRINGS(E, ...)                                    \
+  static_assert(std::is_enum<E>::value,                         \
+                "Not an enumeration type");                     \
+                                                                \
+  inline auto const & _get_enum_strings(E)                      \
+  {                                                             \
+    static constexpr char const * ss[] { __VA_ARGS__ };         \
+    return ss;                                                  \
+  }                                                             \
+                                                                \
+  inline std::ostream &                                         \
+  operator<<(std::ostream & os, E const e)                      \
+  {                                                             \
+    os << ::enum_strings::to_string(e);                         \
+    return os;                                                  \
+  }                                                             \
+                                                                \
+  inline std::istream &                                         \
+  operator>>(std::istream & is, E & e)                          \
+  {                                                             \
+    std::string s; is >> s;                                     \
+    e = ::enum_strings::from_string<E>(s);                      \
+    return is;                                                  \
+  }                                                             \
+                                                                \
+  static_assert(::enum_strings::detail::check_num_values<E>(0), \
+                "Number of strings doesn't match number of enum"\
+                " values as determined by END enumeration value")
 
 namespace enum_strings
 {
@@ -140,6 +150,23 @@ inline std::vector<std::string> get_strings()
 {
   return ::enum_strings::detail::get_strings<E, std::vector<std::string>>(std::make_index_sequence<::enum_strings::num_values<E>()>{});
 }
+
+namespace detail
+{
+
+template< typename E, E = E::END >
+inline constexpr bool check_num_values(int)
+{
+  return ::enum_strings::num_values<E>() == static_cast<std::size_t>(static_cast<std::underlying_type_t<E>>(E::END));
+}
+
+template< typename >
+inline constexpr bool check_num_values(...)
+{
+  return true;
+}
+
+} // namespace detail
 
 } //namespace enum_strings
 
