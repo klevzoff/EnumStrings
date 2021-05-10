@@ -24,8 +24,10 @@ Limitations
   In other words, only default compiler-assigned values should be used.
   This works fine for the intended use-case: converting user inputs into integral constants that represent options/alternatives that are switched upon.
   This does not work if underlying numerical values have a meaning of their own and must be custom.
-* There is no check that the number of strings provided in the macro call matches the number of user-defined enumeration constants.
+* There is no check by default that the number of strings provided in the macro call matches the number of user-defined enumeration constants.
   The user is responsible for keeping the macro invocation up-to-date with enum definition.
+  It is also now possible to declare a special enumeration value named `END` as the last constant of enumeration type.
+  If it is present, its value (that should be default-assigned by the compiler) will be used to check the number of strings passed to the macro invocation at compile time.
 
 Usage
 -----
@@ -40,12 +42,20 @@ The macro takes the enum type and a list of raw string literals that will be ass
 ```c++
 #include "EnumStrings.h"
 
-enum WeakEnum { A, B };
+// With pre C++11/weak/unscoped enum:
+enum WeakEnum { A, B, END }; // END only used for checking strings
 ENUM_STRINGS(WeakEnum, "wa", "wb");
+// The following lines will error at compile time:
+// ENUM_STRINGS(WeakEnum, "wa");
+// ENUM_STRINGS(WeakEnum, "wa", "wb", "wc");
 
+// With C++11/strong/scoped enum:
 enum class StrongEnum : int16_t { A, B };
 ENUM_STRINGS(StrongEnum, "sa", "sb");
+// No END guard, the following compiles but may error at runtime:
+// ENUM_STRINGS(StrongEnum, "sa");
 
+// With (scoped or unscoped) enum nested in a class declaration:
 struct Foo
 {
   enum class NestedEnum { A, B, C };
@@ -102,3 +112,11 @@ to be called by other utility functions in the `enum_strings` namespace.
 The use of local static for storage avoids all kinds of linking problems, but prevents the whole
 utility from being `constexpr`. In author's view, compile-time enum-string conversions
 are of secondary interest compared to primary intended use (converting runtime input values).
+
+The use of special `END` value to enable compile-time checking is optional.
+There are downsides to it, for example the compiler may start issuing warnings about unhandled case in a switch statement.
+In author's opinion however, it's good practice have a `default` case in `switch` statements anyway.
+Another burden is having to document the additional value and explain it to code users - this seems unavoidable.
+The choice of name `END` may also be problematic for enums where this name already exists or is meaningful.
+More "uglified" names like `END_` or `ENUM_STRINGS_END` were considered but discarded for purely aesthetic reasons.
+This might change in the future as needed.
