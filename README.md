@@ -12,7 +12,7 @@ or when you want user-facing strings to contain characters not allowed in C++ id
 On the plus side, `EnumStrings` 
 * **does not** rely on compiler-specific hacks (and so works with any C++14 compiler);
 * **does not** involve a large amount of code generation (the macro invoked is *really* small);
-* **does not** wrap the enum in some wrapper type 
+* **does not** wrap the enum in some custom type 
 
 In summary, I **strongly** suggest you check out the two libraries mentioned above first, and only come back here if neither of them works for you.
 Also, please read the section below.
@@ -35,12 +35,12 @@ Usage
 There is no installation process - just copy the file `enum_strings.h` into your project and use.
 Support/versioning are not planned at this time (I will fix bugs and accept pull requests though).
 
-The header provides a single macro `ENUM_STRINGS` that must be called in the same namespace the enumeration is defiend in.
+The header provides a single macro `ENUM_STRINGS` that must be called in the same namespace the enumeration is defined in.
 For enums nested in classes, the macro should be called at the namespace scope after the class definition.
-The macro takes the enum type and a list of raw string literals that will be associated with contiguous enumeration values.
+The macro takes the enum type and a list of string literals that will be associated with contiguous enumeration values.
 
 ```c++
-#include "EnumStrings.h"
+#include "enum_strings.h"
 
 // With pre C++11/weak/unscoped enum:
 enum WeakEnum { A, B, END }; // END only used for checking strings
